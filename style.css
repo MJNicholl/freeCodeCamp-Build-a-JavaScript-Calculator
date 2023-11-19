@@ -1,0 +1,86 @@
+
+body {
+    background-color: darkcyan;
+}
+
+#calculator {
+    margin: auto;
+    display: grid;
+    grid-template-columns: 100px 100px 100px 100px;
+    grid-template-rows: auto;
+    row-gap: 5px;
+    column-gap: 5px;
+    /*grid-template-areas:
+        "header header header header"
+        "one two three sidebar"
+        "four five six sidebar"
+        "seven eight nine sidebar"
+        "zero dot equals sidebar";*/
+
+    grid-template-areas: 
+       "header header header header"
+        "main main main sidebar"
+        "main main main sidebar"
+        "main main main sidebar"
+        "footer footer footer sidebar";
+
+    background-color: black;
+    border: 5px solid yellow;
+    width: 415px;
+    height: 480px;
+}
+
+#display-container {
+    border: 2px solid red;
+    height: 80px;
+    color:white;
+    display: block;
+    top: 0px;
+}
+
+#numbers {
+    grid-area: main;
+    background-color: lightgrey;
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+#operators {
+    grid-area:sidebar;
+    background-color: darkgrey;
+
+    display:inherit;
+    justify-content: space-around;
+    align-content: space-around;
+}
+
+#other-buttons {
+    grid-area: footer;
+    background-color: grey;
+
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.calculator-button {
+    background-color: darkgrey;
+    border: 2px solid darkcyan;
+    width: 90px;
+    height: 70px;
+    text-align: center;
+    font-size: 4rem;
+    font-weight: bold;
+}
+
+p {
+    margin: 0px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+#display p{
+    font-size: 2rem;
+}

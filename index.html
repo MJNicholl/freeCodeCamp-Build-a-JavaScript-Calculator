@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build a JavaScript Calculator</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- using babel to transpile the script
+    because the JSX part of the script is not supported by default in some browsers
+    and it throws an error saying " Uncaught SyntaxError: Unexpected token < " -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script> 
+
+    <!-- using react cdn, the first one is the core react library -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <!-- this second one is the DOM library to render react components into the DOM -->
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script type="text/babel">
+        const allNumbers = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "zero": 0};
+        const numbers = Object.values(allNumbers);
+        const numberKeys = Object.keys(allNumbers);
+
+        const allOperators = {"add": "+", "subtract": "-", "multiply": "*", "divide": "/"};
+        const operators = Object.values(allOperators);
+        const operatorKeys = Object.keys(allOperators);
+
+        const allOtherButtons = {"clear": "c", "decimal": ".", "equals": "="};
+        const otherButtons = Object.values(allOtherButtons);
+        const otherKeys = Object.keys(allOtherButtons);
+        
+        let previousResult = "calculator";
+        let currentResult = "0";
+        let displayElement;
+        let canPutDot = true;
+
+        class App extends React.Component
+        {
+            render()
+            {
+                return (
+                    <div id="calculator">
+                        <Display />
+                        <Numbers />
+                        <Operators />
+                        <OtherButtons />
+                    </div>
+                )
+            }
+        }
+
+        class Display extends React.Component
+        {
+            render()
+            {
+                return (
+                    <div id="display-container" style={{gridArea: "header"}}>
+                        <p>{previousResult}</p>
+                        <div id="display">
+                            <p>{currentResult}</p>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        class Numbers extends React.Component
+        {
+            render()
+            {
+                return (
+                    <div id="numbers">   
+                        <ButtonGenerator listOfKeys={numberKeys} listOfValues={numbers} />
+                    </div>
+                )
+            }
+        }
+
+        class Operators extends React.Component
+        {
+            render()
+            {
+                return (
+                    <div id="operators">
+                        <ButtonGenerator listOfKeys={operatorKeys} listOfValues={operators} />
+                    </div>
+                )
+            }
+        }
+
+        class OtherButtons extends React.Component
+        {
+            render()
+            {
+                return (
+                    <div id="other-buttons">
+                        <ButtonGenerator listOfKeys={otherKeys} listOfValues={otherButtons} />
+                    </div>
+                )
+            }
+        }
+
+        class ButtonGenerator extends React.Component
+        {
+            constructor(props)
+            {
+                super(props)
+
+                this.state = {
+                    listOfKeys: this.props.listOfKeys,
+                    listOfValues: this.props.listOfValues,
+                }
+            }
+            render()
+            {
+                return (
+                    this.props.listOfValues.map(item => <CalculatorButton id={this.state.listOfKeys[this.state.listOfValues.indexOf(item)]} value={item} />)
+                )
+            }
+        }
+
+        class CalculatorButton extends React.Component
+        {
+            constructor(props)
+            {
+                super(props)
+
+                this.state ={
+                    id: this.props.id,
+                    value: this.props.value
+                }
+
+                this.handleClick = this.handleClick.bind(this);
+            }
+
+            calculateResult()
+            {
+                return eval(currentResult);
+            }
+
+            handleClick()
+            {
+                if(currentResult == "0")
+                {
+                    currentResult = "";
+                }
+
+                // if the button is a number
+                if(numberKeys.includes(this.state.id))
+                {
+                    currentResult += event.target.textContent;
+                }
+
+                // if the button is an operator
+                if(operatorKeys.includes(this.state.id))
+                {
+                    // allow the minus operator to be used to set a negative number
+                    // double check for "minus between two other operators" sequences (e.g.: 5*-+5 should equals 10)
+                    for(let i = 0; i < 2; i ++)
+                    {
+                        if((operators.includes(currentResult[currentResult.length-1]) && event.target.textContent != "-") || (currentResult[currentResult.length-1] == "-" && event.target.textContent == "-"))
+                        {
+                            currentResult = currentResult.slice(0, currentResult.length-1);
+                        }
+                    }
+
+                    currentResult += event.target.textContent;
+
+                    canPutDot = true;
+                }
+                
+                // if the button is neither a number nor an operator
+                if(otherKeys.includes(this.state.id))
+                {
+                    // put a dot
+                    if(this.state.id == "decimal" && canPutDot)
+                    {
+                        if(operators.includes(currentResult[currentResult.length-1]))
+                        {
+                            currentResult += 0;
+                        }
+                        currentResult += event.target.textContent;
+                        
+                        canPutDot = false;
+                    }
+
+                    // clear
+                    if(this.state.id == "clear")
+                    {
+                        previousResult = ""
+                        currentResult = "0";
+
+                        canPutDot = true;
+                    }
+                    
+                    // result
+                    if(this.state.id == "equals")
+                    {
+                        previousResult = currentResult;
+                        currentResult = this.calculateResult();
+
+                        canPutDot = true;
+                    }
+                }
+
+                // find and update display
+                if(displayElement == null)
+                {
+                    displayElement = document.getElementById("display");
+                }
+                if(displayElement != null)
+                {
+                    root.render(React.createElement(App), appElement);
+                }
+            }
+
+            render()
+            {
+                return (
+                    <div className="calculator-button" id={this.state.id} onClick={this.handleClick} >
+                        {this.state.value}
+                    </div>
+                )
+            }
+        }
+
+        const appElement = document.getElementById("app");
+        const root = ReactDOM.createRoot(appElement);
+        root.render(React.createElement(App), appElement);
+
+    </script>
+
+    <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+</body>
+</html>
